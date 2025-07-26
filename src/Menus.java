@@ -45,7 +45,6 @@ public class Menus
         leitor.close();
 
     }
-
     public static void cadastro() {
         Scanner leitor = new Scanner(System.in);
 
@@ -53,30 +52,11 @@ public class Menus
 
         try
         {
-            // Pede o cpf ao usuário
-            String cpf;
-            do
-            {
-                System.out.print("\nDigite o seu cpf: ");
-                cpf = leitor.nextLine().trim();
-
-                if(cpf.isEmpty())
-                {
-                    System.out.println("O cpf não pode ser vazio!");
-                }
-
-                if (!Verificador.isCpf(cpf))
-                {
-                    System.out.println("O cpf esta inválido"); // alterar aqui dps
-                }
-
-            } while (cpf.isEmpty());
-
-            // Pede o nome do usuário
+            // Pede os dados do usuário
             String nome;
             do
             {
-                System.out.print("Digite o seu nome: "); // Pede o nome do usuário.
+                System.out.print("\nDigite o seu nome: "); // Pede o nome do usuário.
                 nome = leitor.nextLine().trim(); // Lê o próximo inteiro digitado pelo usuáio e limpa os espaços a direita e esquerda.
 
                 // Se o nome for vazio ele avisa isso ao usuário e pede o nome novamente.
@@ -109,13 +89,26 @@ public class Menus
 
             } while (!Verificador.isNumber(String.valueOf(idade)));
 
+            // Pede o cpf ao usuário
+            String cpf;
+            do
+            {
+                System.out.print("Digite o seu cpf: ");
+                cpf = leitor.nextLine();
+
+                if(cpf.isEmpty())
+                {
+                    System.out.println("O cpf não pode ser vazio!");
+                }
+
+            } while (cpf.isEmpty());
 
 
             // Pede para o usuário criar uma senha
             String senha;
             do
             {
-                System.out.print("\nDigite uma boa senha para a sua conta: ");
+                System.out.print("Digite uma boa senha para a sua conta: ");
                 senha = leitor.nextLine();
 
                 // Vê se a senha é válida.
@@ -156,42 +149,43 @@ public class Menus
         // Mesma coisa do cadastro aqui, so peço os dados do usuário, e verifico se estão de acordo.
         try
         {
-            System.out.print("\nDigite a sua idade: ");
-            int idade = leitor.nextInt();
-
-
-            String nome;
+            // Pede o cpf ao usuário
+            String cpf;
             do
             {
-                System.out.print("\nDigite o seu nome: ");
-                nome = leitor.nextLine().trim();
+                System.out.print("Digite o seu cpf: ");
+                cpf = leitor.nextLine();
 
-                if (nome.isEmpty())
+                if(cpf.isEmpty())
                 {
-                    System.out.println("\nNome não pode estar vazio.");
-                }
-                else if (!Verificador.isName(nome))
-                {
-                    System.out.println("Nome inválido!");
+                    System.out.println("O cpf não pode ser vazio!");
                 }
 
-            } while (nome.isEmpty() || !Verificador.isName(nome));
+            } while (cpf.isEmpty());
 
             // Aqui as coisas mudam.
-            boolean existe = GerenciarBanco.verificarNoBanco(nome); // Verifico se a conta existe.
-            String senha_conta = GerenciarBanco.puxarSenha(nome); // Pego a senha associada a conta.
+            boolean existe = GerenciarBanco.verificarNoBanco(cpf); // Verifico se a conta existe.
+            String senha_conta = GerenciarBanco.puxarSenha(cpf); // Pego a senha associada a conta.
             boolean nao_sair = false; // Verificar se conseguiu logar, false por padrão.
+            boolean ir_tela_inicial = false;
 
-            do {
+            do
+            {
                 if (existe) // Se existe
                 {
-                    System.out.print("\nInsira a sua senha para logar na sua conta: "); // Peço a senha ao usuário
+                    System.out.print("Insira a sua senha para logar na sua conta: "); // Peço a senha ao usuário
                     String senha_digitada = leitor.nextLine(); // Lê as próximas strings digitadas na linha.
+
+                    if (senha_conta == null)
+                    {
+                        System.out.println("Erro: cpf é vazio!");
+                    }
 
                     if (senha_digitada.equals(senha_conta))  // Se a senha digita for a mesma que esta cadastrada, o login é efetuado.
                     {
-                        System.out.println("Login efetuado com sucesso, seja bem-vindo(a) " + nome); // Da boas vindas.
+                        System.out.println("Login efetuado com sucesso!"); // Da boas vindas.
                         nao_sair = true; // Atualiza para true.
+                        ir_tela_inicial = true;
 
                     }
                     else // Se a senha for diferente.
@@ -206,7 +200,7 @@ public class Menus
                 else // Se a conta não existir
                 {
                     // Informa que não existe, e pergunta se quer criar cadastrar uma nova conta.
-                    System.out.print("\nSua conta não existe, deseja criar uma (s/n)? ");
+                    System.out.print("Sua conta não existe, deseja criar uma (s/n)? ");
                     String continuar = leitor.nextLine(); // Lê as próximas strings digitadas na linha.
 
                     // Usa switch case pra verificar a entrada do usuário e mandar ele pra onde for necessário.
@@ -228,13 +222,75 @@ public class Menus
 
             } while (!nao_sair);
 
-            leitor.close();
+            if (ir_tela_inicial)
+            {
+                dashboard(cpf);
+            }
+
         }
         catch (Exception e)
         {
             System.out.println("Erro: " + e);
 
         }
+
+    }
+
+    private static void dashboard(String cpf) {
+        Scanner leitor = new Scanner(System.in);
+
+        System.out.println("====== Seja bem-vindo(a) ======");
+
+        boolean sair = false;
+
+        int acao;
+        do
+        {
+            System.out.print("[1] Excluir Conta\n[2] Sair\n\nDigite a sua ação: ");
+            acao = leitor.nextInt();
+
+            if (!Verificador.isNumber(String.valueOf(acao)) || String.valueOf(acao).isEmpty())
+            {
+                System.out.println("As ações são representados pelos números!");
+                continue;
+
+            }
+
+            switch (acao)
+            {
+                case 1 -> {
+                    boolean apagou = GerenciarBanco.removerDoBanco(cpf);
+
+                    if (apagou)
+                    {
+                        System.out.println("Conta removida com sucesso!");
+                        sair = true;
+                    }
+                    else
+                    {
+                        System.out.println("Não foi possível excluir sua conta!");
+                        sair = false;
+
+                    }
+
+                }
+
+                case 2 -> {
+                    System.out.println("Saindo...");
+                    sair = true;
+
+                }
+
+                default -> {
+                    System.out.println("Ação não existe!");
+                    sair = false;
+                }
+
+            }
+
+        } while (!sair);
+
+        leitor.close();
 
     }
 
