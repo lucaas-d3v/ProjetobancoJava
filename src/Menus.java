@@ -1,157 +1,7 @@
-import java.sql.*;
 import java.util.Scanner;
 
-public class GerenciarBanco {
-
-    protected static boolean verificarNoBanco(String cpf) {
-        boolean existe = false; // Variável pra verificar se o usuário ja existem começa em false por padrão.
-
-        try {
-            Connection conexao = DriverManager.getConnection("jdbc:sqlite:BancoPrincipal.db"); // Cria uma conexão com o banco.
-            ResultSet usuarios = puxarBanco(); // Puxa todos os usuários do banco.
-
-            while (true) // Itera sobre os usuários.
-            {
-                assert usuarios != null;
-
-                if (!usuarios.next()) break;
-                if (usuarios.getString("cpf").equals(cpf)) // Compara os nomes do banco, e se o usuário existir ele para o loop.
-                {
-                    existe = true; // Atualiza pra true se for o mesmo.
-                    break;
-
-                }
-
-            }
-
-            conexao.close();
-
-            return existe;
-        } catch (Exception e) {
-            System.out.println("Erro: " + e);
-
-        }
-
-        return existe;
-    }
-
-    protected static boolean adicionarAoBanco(String cpf, String nome, int idade, String senha) {
-        // Tenta adicionar um novo usuário ao banco.
-        try {
-            // Tenta acessar o banco, casso não exista, ele cria.
-            Connection conexao = DriverManager.getConnection("jdbc:sqlite:BancoPrincipal.db");
-
-            Statement criar_tabela = conexao.createStatement();
-
-            String comando = "CREATE TABLE IF NOT EXISTS usuarios (" +
-                    "cpf INTEGER PRIMARY KEY TEXT NOT NULL, " +
-                    "nome TEXT NOT NULL, " +
-                    "idade INTEGER NOT NULL, " +
-                    "senha TEXT NOT NULL)";
-
-
-            criar_tabela.executeUpdate(comando); // executa a criação do banco.
-            criar_tabela.close();
-
-            // Adiciona os dados ao banco.
-            comando = "INSERT INTO usuarios (cpf, nome, idade, senha) VALUES (?, ?, ?, ?)"; // Comando pra inserir uma nova linha (usuário) ao banco.
-            PreparedStatement inserir = conexao.prepareStatement(comando);
-
-
-            inserir.setString(1, cpf);
-            inserir.setString(2, nome); // Seta o 1º "?" como nome, e o 2º como a idade do usuário.
-            inserir.setInt(3, idade);
-            inserir.setString(4, senha);
-
-            inserir.executeUpdate(); // Executa a atualização no banco.
-
-            inserir.close();
-
-            return true;
-        } catch (Exception e) {
-            System.out.println("Erro: " + e.getMessage());
-
-            return false; // Retorna false, caso a ação não dê certo.
-
-        }
-
-    }
-
-    protected static boolean removerDoBanco(String cpf) {
-
-        try {
-            Connection conexao = DriverManager.getConnection("jdbc:sqlite:BancoPrincipal.db");
-
-            // Tenta remover o usuário do banco a partir do id.
-            String comando_apagar = "DELETE FROM usuarios WHERE cpf = ?";
-            PreparedStatement apagar = conexao.prepareStatement(comando_apagar);
-
-            apagar.setString(1, cpf); // Subistitui o "?" pelo cpf do usuário em questão.
-            apagar.executeUpdate(); // Executa a atualização.
-
-            apagar.close();
-
-            return true; // Retorna true se der tudo certo.
-        } catch (Exception e) {
-            System.out.println("Erro: " + e);
-
-            return false; // Retorna erro se o nome não existir no banco.
-
-        }
-
-    }
-
-
-
-    protected static ResultSet puxarBanco()
-    {
-        // Tenta puxar todos os usuários do banco.
-        try
-        {
-            Connection conexao = DriverManager.getConnection("jdbc:sqlite:BancoPrincipal.db");
-
-            Statement puxar = conexao.createStatement();
-            ResultSet dados = puxar.executeQuery("SELECT * FROM usuarios"); // Seleciona todos os usuários do banco.
-
-            puxar.close();
-
-            return dados; // retorna os usuários.
-
-        }
-        catch (Exception e)
-        {
-            return null; // Retorna erro, se não der certo.
-
-        }
-
-    }
-
-    protected static String puxarSenha(String nome) {
-        try {
-            ResultSet usuarios = puxarBanco(); // Puxa todos os usuários do banco.
-
-            while (true) {
-                assert usuarios != null;
-                if (!usuarios.next()) break;
-                String nomeAtual = usuarios.getString("cpf"); // pega o valor da coluna "nome"
-
-                if (nomeAtual.equals(nome)) {
-                    return usuarios.getString("senha"); // pega o valor da coluna "senha"
-                }
-
-            }
-
-        }
-        catch (Exception e)
-        {
-            System.out.println("Erro: " + e);
-
-        }
-        return null; // ou lançar exceção se quiser tratar como erro
-
-    }
-
-
+public class Menus
+{
     public static void menuPrincipal()
     {
         Scanner leitor = new Scanner(System.in);
@@ -203,11 +53,30 @@ public class GerenciarBanco {
 
         try
         {
-            // Pede os dados do usuário
+            // Pede o cpf ao usuário
+            String cpf;
+            do
+            {
+                System.out.print("\nDigite o seu cpf: ");
+                cpf = leitor.nextLine().trim();
+
+                if(cpf.isEmpty())
+                {
+                    System.out.println("O cpf não pode ser vazio!");
+                }
+
+                if (!Verificador.isCpf(cpf))
+                {
+                    System.out.println("O cpf esta inválido"); // alterar aqui dps
+                }
+
+            } while (cpf.isEmpty());
+
+            // Pede o nome do usuário
             String nome;
             do
             {
-                System.out.print("\nDigite o seu nome: "); // Pede o nome do usuário.
+                System.out.print("Digite o seu nome: "); // Pede o nome do usuário.
                 nome = leitor.nextLine().trim(); // Lê o próximo inteiro digitado pelo usuáio e limpa os espaços a direita e esquerda.
 
                 // Se o nome for vazio ele avisa isso ao usuário e pede o nome novamente.
@@ -240,26 +109,13 @@ public class GerenciarBanco {
 
             } while (!Verificador.isNumber(String.valueOf(idade)));
 
-            // Pede o cpf ao usuário
-            String cpf;
-            do
-            {
-                System.out.print("Digite o seu cpf: ");
-                cpf = leitor.nextLine();
-
-                if(cpf.isEmpty())
-                {
-                    System.out.println("O cpf não pode ser vazio!");
-                }
-
-            } while (cpf.isEmpty());
 
 
             // Pede para o usuário criar uma senha
             String senha;
             do
             {
-                System.out.print("Digite uma boa senha para a sua conta: ");
+                System.out.print("\nDigite uma boa senha para a sua conta: ");
                 senha = leitor.nextLine();
 
                 // Vê se a senha é válida.
@@ -274,7 +130,7 @@ public class GerenciarBanco {
 
             leitor.close();
 
-            if (adicionarAoBanco(cpf, nome, idade, senha)) // Se a conta for adicionada com sucesso, ele informa.
+            if (GerenciarBanco.adicionarAoBanco(cpf, nome, idade, senha)) // Se a conta for adicionada com sucesso, ele informa.
             {
                 System.out.println("\nSua conta foi criada com sucesso! :)");
             }
@@ -322,14 +178,14 @@ public class GerenciarBanco {
             } while (nome.isEmpty() || !Verificador.isName(nome));
 
             // Aqui as coisas mudam.
-            boolean existe = verificarNoBanco(nome); // Verifico se a conta existe.
-            String senha_conta = puxarSenha(nome); // Pego a senha associada a conta.
+            boolean existe = GerenciarBanco.verificarNoBanco(nome); // Verifico se a conta existe.
+            String senha_conta = GerenciarBanco.puxarSenha(nome); // Pego a senha associada a conta.
             boolean nao_sair = false; // Verificar se conseguiu logar, false por padrão.
 
             do {
                 if (existe) // Se existe
                 {
-                    System.out.print("Insira a sua senha para logar na sua conta: "); // Peço a senha ao usuário
+                    System.out.print("\nInsira a sua senha para logar na sua conta: "); // Peço a senha ao usuário
                     String senha_digitada = leitor.nextLine(); // Lê as próximas strings digitadas na linha.
 
                     if (senha_digitada.equals(senha_conta))  // Se a senha digita for a mesma que esta cadastrada, o login é efetuado.
@@ -350,7 +206,7 @@ public class GerenciarBanco {
                 else // Se a conta não existir
                 {
                     // Informa que não existe, e pergunta se quer criar cadastrar uma nova conta.
-                    System.out.print("Sua conta não existe, deseja criar uma (s/n)? ");
+                    System.out.print("\nSua conta não existe, deseja criar uma (s/n)? ");
                     String continuar = leitor.nextLine(); // Lê as próximas strings digitadas na linha.
 
                     // Usa switch case pra verificar a entrada do usuário e mandar ele pra onde for necessário.
@@ -385,5 +241,7 @@ public class GerenciarBanco {
     public static void main(String[] args)
     {
         menuPrincipal();
+
     }
+
 }
