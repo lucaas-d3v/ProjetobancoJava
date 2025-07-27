@@ -48,8 +48,10 @@ JDBC (Java Database Connectivity)
 
 1. Clone o repositório
 
+```git
 git clone https://github.com/seu-usuario/ProjetobancoJava.git
 cd ProjetobancoJava
+```
 
 
 2. Compile os arquivos Java
@@ -57,15 +59,15 @@ cd ProjetobancoJava
 > Certifique-se de que o sqlite-jdbc está no seu classpath
 
 
-
+```
 javac -cp ".:sqlite-jdbc-<versao>.jar" *.java
-
+```
 
 3. Execute o programa
 
+```
 java -cp ".:sqlite-jdbc-<versao>.jar" Principal
-
-
+```
 
 
 ---
