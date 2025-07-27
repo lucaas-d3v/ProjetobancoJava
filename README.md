@@ -1,4 +1,3 @@
----
 
 🗂 Projeto: Sistema de Cadastro com SQLite em Java
 
@@ -11,8 +10,6 @@ CRUD básico (Create, Read, Update, Delete);
 Estruturação de código Java;
 
 Manipulação de entradas do usuário via terminal.
-
-
 
 ---
 
